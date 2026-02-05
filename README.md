@@ -1,4 +1,4 @@
-# 🚀 Job Application Assistant Chatbot
+# Job Application Assistant Chatbot
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue)
 ![Streamlit](https://img.shields.io/badge/Frontend-Streamlit-red)
@@ -52,6 +52,9 @@ The app follows a 3-stage intelligence pipeline:
     ```bash
     streamlit run app.py
     ```
+## Acknowledgments
+This project utilizes the **ScaleDown** library for semantic text compression. We credit the original authors for their work on the compression algorithms used in the local module:
+* **ScaleDown Repository:** [https://github.com/scaledown-team/scaledown](https://github.com/scaledown-team/scaledown)
 
 ## License
 MIT License
