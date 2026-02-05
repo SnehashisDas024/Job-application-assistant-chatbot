@@ -191,7 +191,7 @@ def main():
     
     resume_file, jd_text = render_sidebar()
     
-    st.title("🚀 Job Application Assistant")
+    st.title("Job Application Assistant")
 
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
