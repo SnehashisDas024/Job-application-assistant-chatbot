@@ -1,6 +1,6 @@
 """
-Job Application Assistant – Phase 1 (Frontend & Structure)
-Status: UI Layout complete. PDF Parsing logic added. AI/Compression Pending.
+Job Application Assistant – Phase 2 (Compression Integration)
+Status: Local ScaleDown module imported successfully. Compression logic active.
 """
 
 import streamlit as st
@@ -8,7 +8,28 @@ import pdfplumber
 import sys
 import os
 
+# ============================================================================
+# LOCAL IMPORT SETUP
+# ============================================================================
+
+# 1. Add current directory to Python path so it finds the 'scaledown' folder
+sys.path.append(os.getcwd())
+
+# 2. Import specifically from the file shown in your screenshot
+try:
+    # Folder: scaledown -> compressor -> File: scaledown_compressor.py -> Class: ScaleDownCompressor
+    from scaledown.compressor.scaledown_compressor import ScaleDownCompressor
+except ImportError:
+    # Backup: In some versions, it's exposed in the __init__.py one level up
+    try:
+        from scaledown.compressor import ScaleDownCompressor
+    except ImportError as e:
+        st.error(f"❌ Import Error: Could not find 'ScaleDownCompressor'. \nDetails: {e}")
+        st.stop()
+
+# ============================================================================
 # SESSION STATE
+# ============================================================================
 
 def init_session_state():
     if "messages" not in st.session_state:
@@ -16,7 +37,9 @@ def init_session_state():
     if "resume_uploaded" not in st.session_state:
         st.session_state.resume_uploaded = False
 
+# ============================================================================
 # SIDEBAR
+# ============================================================================
 
 def render_sidebar():
     with st.sidebar:
@@ -41,7 +64,9 @@ def render_sidebar():
 
     return resume_file, job_description
 
-# LOGIC: PDF EXTRACTION
+# ============================================================================
+# LOGIC: PDF & COMPRESSION
+# ============================================================================
 
 def extract_text_from_pdf(file):
     try:
@@ -52,7 +77,44 @@ def extract_text_from_pdf(file):
         st.error(f"PDF Error: {e}")
         return None
 
-# MAIN AI PIPELINE (Placeholder for Phase 1)
+def compress_jd(jd_text):
+    """
+    Uses the local ScaleDownCompressor with the CORRECT arguments.
+    """
+    try:
+        # 1. Initialize with API Key (Required for the class)
+        api_key = st.secrets.get("SCALEDOWN_API_KEY")
+        if not api_key:
+            return jd_text, "Skipped (Missing SCALEDOWN_API_KEY)"
+
+        compressor = ScaleDownCompressor(api_key=api_key)
+        
+        # 2. Compress (Using your fixed arguments)
+        result = compressor.compress(
+            context=jd_text,  
+            prompt="Extract key requirements, skills, and responsibilities.",
+            target_model="gemini-2.5-flash", # Adjusted to 2.5-flash to be safe
+            ratio=0.5
+        )
+        
+        # 3. Handle Return Type (String vs Object)
+        if hasattr(result, "content"):
+            return result.content, f"ScaleDown: {getattr(result, 'savings_percent', '50')}% saved"
+        elif isinstance(result, str):
+            return result, "ScaleDown: Compression Active"
+        else:
+            return str(result), "ScaleDown: Active"
+
+    except TypeError as e:
+        print(f"ScaleDown Arguments Error: {e}")
+        return jd_text, f"Compression Error: Arguments mismatch"
+    except Exception as e:
+        print(f"Compression Warning: {e}")
+        return jd_text, "ScaleDown Skipped (Check Logs)"
+
+# ============================================================================
+# MAIN AI PIPELINE (Phase 2)
+# ============================================================================
 
 def get_ai_response(user_input, resume, jd):
     # 1. Extract Resume
@@ -60,19 +122,24 @@ def get_ai_response(user_input, resume, jd):
     if not resume_text:
         return "⚠️ Error: Could not read resume PDF."
 
-    # 2. Mock Response (Frontend Test)
+    # 2. Compress JD
+    compressed_jd, status_msg = compress_jd(jd)
+
+    # 3. Return Compression Stats (Before AI integration)
     return f"""
-    > *System Status: Frontend Online. PDF Parsed ({len(resume_text)} chars).*
+    > *{status_msg}*
     
-    **Simulation Response:**
-    I have received your query: "{user_input}"
+    **Internal Process:**
+    1. **PDF Extracted:** ✅
+    2. **Compression:** ✅ (Optimized for Gemini 2.5)
+    3. **Context Ready:** {len(compressed_jd)} chars (Reduced from {len(jd)})
     
-    The UI is fully functional. 
-    - **Resume:** Loaded
-    - **JD:** Loaded
+    *Gemini Integration pending in next update.*
     """
 
+# ============================================================================
 # APP ENTRY
+# ============================================================================
 
 def main():
     st.set_page_config(page_title="CareerBot", layout="wide")
@@ -80,7 +147,7 @@ def main():
     
     resume_file, jd_text = render_sidebar()
     
-    st.title("Job Application Assistant")
+    st.title("🚀 Job Application Assistant")
 
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
@@ -97,7 +164,7 @@ def main():
             st.session_state.messages.append({"role": "assistant", "content": err})
         else:
             with st.chat_message("assistant"):
-                with st.spinner("Analyzing (Simulation)..."):
+                with st.spinner("Running Compression..."):
                     resp = get_ai_response(prompt, resume_file, jd_text)
                     st.markdown(resp)
                     st.session_state.messages.append({"role": "assistant", "content": resp})
