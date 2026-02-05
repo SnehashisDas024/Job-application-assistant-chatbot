@@ -1,10 +1,14 @@
 """
-Job Application Assistant – Phase 2 (Compression Integration)
-Status: Local ScaleDown module imported successfully. Compression logic active.
+Job Application Assistant – Phase 3 (Final & Fixed)
+Combines:
+1. Correct Local ScaleDown import.
+2. Adaptive Prompting (Fixes the "wasteful format" issue).
+3. Inline Key Check (Fixes the "check_api_keys" NameError).
 """
 
 import streamlit as st
 import pdfplumber
+from google import genai
 import sys
 import os
 
@@ -113,29 +117,69 @@ def compress_jd(jd_text):
         return jd_text, "ScaleDown Skipped (Check Logs)"
 
 # ============================================================================
-# MAIN AI PIPELINE (Phase 2)
+# MAIN AI PIPELINE (Fixed & Adaptive)
 # ============================================================================
 
 def get_ai_response(user_input, resume, jd):
-    # 1. Extract Resume
+    # 1. Check Gemini Key (INLINE FIX: Removes dependence on check_api_keys)
+    gemini_key = st.secrets.get("GEMINI_API_KEY")
+    if not gemini_key:
+        return "⚠️ Error: GEMINI_API_KEY is missing in .streamlit/secrets.toml"
+
+    # 2. Extract Resume
     resume_text = extract_text_from_pdf(resume)
     if not resume_text:
         return "⚠️ Error: Could not read resume PDF."
 
-    # 2. Compress JD
+    # 3. Compress JD
     compressed_jd, status_msg = compress_jd(jd)
 
-    # 3. Return Compression Stats (Before AI integration)
-    return f"""
-    > *{status_msg}*
-    
-    **Internal Process:**
-    1. **PDF Extracted:** ✅
-    2. **Compression:** ✅ (Optimized for Gemini 2.5)
-    3. **Context Ready:** {len(compressed_jd)} chars (Reduced from {len(jd)})
-    
-    *Gemini Integration pending in next update.*
-    """
+    # 4. Call Gemini with ADAPTIVE PROMPT (Scenario A/B)
+    try:
+        client = genai.Client(api_key=gemini_key)
+        
+        prompt = f"""You are an expert technical recruiter with 15+ years of experience.
+
+**CONTEXT:**
+JOB DESCRIPTION (Optimised):
+{compressed_jd}
+
+CANDIDATE RESUME:
+{resume_text}
+
+**USER QUERY:**
+"{user_input}"
+
+**INSTRUCTIONS:**
+Analyze the User Query and decide the best response format:
+
+**SCENARIO A: If the user asks for a general Resume Review or Critique:**
+Provide a comprehensive analysis using this exact structure:
+1. **Executive Summary**: A 2-sentence verdict on fit.
+2. **Strengths**: 3 bullet points specific to the resume.
+3. **Critical Gaps**: 3 missing keywords/skills required by the JD.
+4. **Action Plan**: 1 specific, high-impact fix.
+
+**SCENARIO B: If the user asks a SPECIFIC question (e.g., "How do I fix X?", "List what to do"):**
+- Answer **ONLY** that question directly.
+- Be concise and tactical.
+- **DO NOT** output the Strengths/Gaps/Action Plan structure unless specifically asked.
+
+**TONE:** Professional, constructive, and direct.
+"""
+        
+        response = client.models.generate_content(
+            model="gemini-2.5-flash", 
+            contents=prompt
+        )
+        
+        if response.text:
+            return f"> *{status_msg}*\n\n" + response.text
+        else:
+            return "⚠️ Gemini returned no text."
+
+    except Exception as e:
+        return f"Gemini Error: {e}"
 
 # ============================================================================
 # APP ENTRY
@@ -164,7 +208,7 @@ def main():
             st.session_state.messages.append({"role": "assistant", "content": err})
         else:
             with st.chat_message("assistant"):
-                with st.spinner("Running Compression..."):
+                with st.spinner("Analyzing..."):
                     resp = get_ai_response(prompt, resume_file, jd_text)
                     st.markdown(resp)
                     st.session_state.messages.append({"role": "assistant", "content": resp})
