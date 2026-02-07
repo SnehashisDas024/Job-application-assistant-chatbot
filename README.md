@@ -8,12 +8,12 @@
 A smart career assistant that helps candidates tailor their resumes to specific job descriptions. It leverages **Local Prompt Compression** (ScaleDown) to process large documents cost-effectively and **Google Gemini 2.5** for high-reasoning career advice.
 
 ## Key Features
-* ** PDF Parsing**: Automatically extracts and sanitizes text from PDF resumes.
-* ** Semantic Compression**: Uses a local `ScaleDown` module to reduce job description token usage by ~40-60% without losing context.
-* ** Adaptive AI**: Switches intelligence modes:
-    * *Analysis Mode*: Detailed gap analysis, strengths, and actionable tips.
-    * *Direct Mode*: Answers specific user questions (e.g., "What salary should I ask for?").
-* ** Interview Prep Mode**: (Creative Feature) Can switch roles to become a hiring manager and conduct a mock interview.
+* **PDF Parsing**: Automatically extracts and sanitizes text from PDF resumes.
+* **Semantic Compression**: Uses a local `ScaleDown` module to reduce job description token usage by ~40-60% without losing context.
+* **Adaptive AI**: Switches intelligence modes:
+    **Analysis Mode*: Detailed gap analysis, strengths, and actionable tips.
+    **Direct Mode*: Answers specific user questions (e.g., "What salary should I ask for?").
+* **Interview Prep Mode**: (Creative Feature) Can switch roles to become a hiring manager and conduct a mock interview.
 
 ## Architecture
 The app follows a 3-stage intelligence pipeline:
