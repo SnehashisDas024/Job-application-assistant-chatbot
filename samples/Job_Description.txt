@@ -1,0 +1,25 @@
+JOB TITLE: Senior Product Designer
+COMPANY: NovaFinancial Tech
+LOCATION: New York, NY (Hybrid)
+
+ABOUT THE ROLE:
+We are looking for a Senior Product Designer to lead the design of our next-gen cryptocurrency exchange platform. You will work closely with Product Managers and Engineers to translate complex financial data into clean, intuitive user interfaces.
+
+RESPONSIBILITIES:
+* Lead the end-to-end design process from user research to high-fidelity prototyping.
+* Create and maintain a comprehensive Design System using Figma.
+* Conduct usability testing and A/B testing to improve conversion rates and user retention.
+* Collaborate with frontend developers to ensure design feasibility (knowledge of React is a plus).
+* Mentor junior designers and advocate for UX best practices across the organization.
+
+REQUIREMENTS:
+* 5+ years of experience as a UX/UI or Product Designer, preferably in FinTech or Banking.
+* Expert proficiency in Figma (Auto-layout, Components, Variables) is mandatory.
+* Strong portfolio demonstrating mobile-first design and complex data visualization.
+* Experience with user research methodologies (personas, journey mapping).
+* Basic understanding of HTML/CSS is required; JavaScript knowledge is a huge plus.
+* Excellent communication skills to present design rationale to stakeholders.
+
+NICE TO HAVE:
+* Experience with Blockchain/Web3 technologies.
+* Experience working in an Agile/Scrum environment.
